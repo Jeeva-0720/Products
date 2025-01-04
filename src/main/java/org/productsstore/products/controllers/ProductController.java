@@ -3,10 +3,9 @@ package org.productsstore.products.controllers;
 
 import org.productsstore.products.models.Product;
 import org.productsstore.products.services.ProductService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -20,12 +19,25 @@ public class ProductController {
     }
 
     @GetMapping("/{id}")
-    public Product getProductById( @PathVariable ("id") Long id) {
-        return productService.getSingleProduct(id);
+    public ResponseEntity<Product> getProductById(@PathVariable ("id") Long id) {
+        ResponseEntity<Product> response = new ResponseEntity<>(productService.getSingleProduct(id), HttpStatus.OK);
+        return response;
     }
 
     @GetMapping
-    public List<Product> getAllProducts() {
-        return productService.getAllProducts();
+    public ResponseEntity<List<Product>> getAllProducts() {
+        ResponseEntity<List<Product>> response;
+        try{
+            response = new ResponseEntity<>(productService.getAllProducts(), HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response = new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return response;
+    }
+
+    @PutMapping("{id}")
+    public Product updateProduct( @PathVariable("id") Long id, Product product) {
+        return productService.updateSingleProduct(id, product);
     }
 }
