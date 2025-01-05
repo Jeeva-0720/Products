@@ -34,13 +34,13 @@ public class FakeStoreProductService implements ProductService {
 
     @Override
     public List<Product> getAllProducts() {
-//        FakeStoreProductDto[] fakeStoreProductDto = restTemplate.getForObject("https://fakestoreapi.com/products", FakeStoreProductDto[].class);
-//        List<Product> products = new ArrayList<>();
-//        for(FakeStoreProductDto fakeStoreProductDto1 : fakeStoreProductDto) {
-//            products.add(fakeStoreProductDto1.convertFakeStoreProductToProduct(fakeStoreProductDto1));
-//        }
-//        return products;
-        throw new UnsupportedOperationException("Not supported yet.");
+        FakeStoreProductDto[] fakeStoreProductDto = restTemplate.getForObject("https://fakestoreapi.com/products", FakeStoreProductDto[].class);
+        List<Product> products = new ArrayList<>();
+        for(FakeStoreProductDto fakeStoreProductDto1 : fakeStoreProductDto) {
+            products.add(fakeStoreProductDto1.convertFakeStoreProductToProduct(fakeStoreProductDto1));
+        }
+        return products;
+//        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
