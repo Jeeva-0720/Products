@@ -2,6 +2,7 @@ package org.productsstore.products.controllerAdvice;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.productsstore.products.Dtos.ExceptionDto;
+import org.productsstore.products.Exceptions.ProductNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -13,6 +14,15 @@ import java.time.LocalDateTime;
 public class GlobalExceptionHandler {
     @ExceptionHandler(NullPointerException.class)
     public ResponseEntity<ExceptionDto> handleNullPointerException(NullPointerException e) {
+        ExceptionDto exceptionDto = new ExceptionDto();
+        exceptionDto.setError(e.getMessage());
+        exceptionDto.setSolution("Search with correct valid id");
+        exceptionDto.setTimestamp(LocalDateTime.now());
+        return new ResponseEntity<>(exceptionDto, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(ProductNotFoundException.class)
+    public ResponseEntity<ExceptionDto> handleProductNotFoundException(ProductNotFoundException e) {
         ExceptionDto exceptionDto = new ExceptionDto();
         exceptionDto.setError(e.getMessage());
         exceptionDto.setSolution("Search with correct valid id");
