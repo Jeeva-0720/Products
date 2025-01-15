@@ -5,9 +5,13 @@ import org.productsstore.products.models.Category;
 import org.productsstore.products.models.Product;
 import org.productsstore.products.repositories.CategoryRepository;
 import org.productsstore.products.repositories.ProductRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import javax.swing.text.html.Option;
+import java.awt.print.Pageable;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,8 +36,9 @@ public class SelfProductService implements ProductService {
     }
 
     @Override
-    public List<Product> getAllProducts() {
-        return productRepository.findAll();
+    public Page<Product> getAllProducts(int pageNumber, int pageSize) {
+
+        return productRepository.findAll( PageRequest.of(pageNumber, pageSize) );
     }
 
     @Override

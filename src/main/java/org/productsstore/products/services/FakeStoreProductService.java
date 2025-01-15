@@ -3,6 +3,8 @@ package org.productsstore.products.services;
 import org.productsstore.products.Dtos.FakeStoreProductDto;
 import org.productsstore.products.models.Category;
 import org.productsstore.products.models.Product;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -33,13 +35,13 @@ public class FakeStoreProductService implements ProductService {
     }
 
     @Override
-    public List<Product> getAllProducts() {
+    public Page<Product> getAllProducts(int pageNumber, int pageSize) {
         FakeStoreProductDto[] fakeStoreProductDto = restTemplate.getForObject("https://fakestoreapi.com/products", FakeStoreProductDto[].class);
         List<Product> products = new ArrayList<>();
         for(FakeStoreProductDto fakeStoreProductDto1 : fakeStoreProductDto) {
             products.add(fakeStoreProductDto1.convertFakeStoreProductToProduct(fakeStoreProductDto1));
         }
-        return products;
+        return new PageImpl<>(products);
 //        throw new UnsupportedOperationException("Not supported yet.");
     }
 
