@@ -17,11 +17,11 @@ public class RazorpayPaymentGateway implements PaymentService {
     }
 
     @Override
-    public String generatePaymentLink(Long orderId) throws RazorpayException {
+    public String generatePaymentLink(Long orderId, Long amount) throws RazorpayException {
 
         JSONObject paymentLinkRequest = new JSONObject();
 
-        paymentLinkRequest.put("amount",10000);
+        paymentLinkRequest.put("amount",amount);
         paymentLinkRequest.put("currency","INR");
         paymentLinkRequest.put("accept_partial",true);
         paymentLinkRequest.put("first_min_partial_amount",1000);
