@@ -1,16 +1,14 @@
 package org.productsstore.products.services;
 
 import org.productsstore.products.Dtos.FakeStoreProductDto;
-import org.productsstore.products.models.Category;
 import org.productsstore.products.models.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpMessageConverterExtractor;
 import org.springframework.web.client.RequestCallback;
-import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
@@ -20,18 +18,28 @@ import java.util.List;
 public class FakeStoreProductService implements ProductService {
 
     RestTemplate restTemplate;
+    RedisTemplate<String, Object> redisTemplate;
 
-    public FakeStoreProductService(RestTemplate restTemplate) {
+    public FakeStoreProductService(RestTemplate restTemplate, RedisTemplate<String, Object> redisTemplate) {
         this.restTemplate = restTemplate;
+        this.redisTemplate = redisTemplate;
     }
 
     @Override
     public Product getSingleProduct(Long id) {
+        Product product = (Product) redisTemplate.opsForHash().get("PRODUCTS", "PRODUCT_" + id);
+
+        if (product != null) {
+            return product;
+        }
+
         FakeStoreProductDto fakeStoreProductDto = restTemplate.getForObject("https://fakestoreapi.com/products/" + id, FakeStoreProductDto.class);
         if(fakeStoreProductDto == null) {
             throw new NullPointerException("Product with id: " + id + " not found");
         }
-        return fakeStoreProductDto.convertFakeStoreProductToProduct(fakeStoreProductDto);
+        product = fakeStoreProductDto.convertFakeStoreProductToProduct(fakeStoreProductDto);
+        redisTemplate.opsForHash().put("PRODUCTS", "PRODUCT_" + id, product);
+        return product;
     }
 
     @Override
