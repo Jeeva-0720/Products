@@ -1,18 +1,25 @@
 package org.productsstore.products.services;
 
+import org.productsstore.products.Dtos.CreateProductRequestDTO;
 import org.productsstore.products.Dtos.FakeStoreProductDto;
+import org.productsstore.products.models.Category;
 import org.productsstore.products.models.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpMessageConverterExtractor;
 import org.springframework.web.client.RequestCallback;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service("fakeStoreProductService")
 public class FakeStoreProductService implements ProductService {
@@ -44,14 +51,23 @@ public class FakeStoreProductService implements ProductService {
 
     @Override
     public Page<Product> getAllProducts(int pageNumber, int pageSize) {
-        FakeStoreProductDto[] fakeStoreProductDto = restTemplate.getForObject("https://fakestoreapi.com/products", FakeStoreProductDto[].class);
-        List<Product> products = new ArrayList<>();
-        for(FakeStoreProductDto fakeStoreProductDto1 : fakeStoreProductDto) {
-            products.add(fakeStoreProductDto1.convertFakeStoreProductToProduct(fakeStoreProductDto1));
+
+        FakeStoreProductDto[] dtoArray = restTemplate.getForObject("https://fakestoreapi.com/products", FakeStoreProductDto[].class);
+        if (dtoArray == null || dtoArray.length == 0) {
+            return Page.empty();
         }
-        return new PageImpl<>(products);
-//        throw new UnsupportedOperationException("Not supported yet.");
+        List<Product> allProducts = Arrays.stream(dtoArray)
+                .map(dto -> dto.convertFakeStoreProductToProduct(dto))
+                .collect(Collectors.toList());
+
+        int start = Math.min(pageNumber * pageSize, allProducts.size());
+        int end = Math.min(start + pageSize, allProducts.size());
+
+        List<Product> pagedProducts = allProducts.subList(start, end);
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        return new PageImpl<>(pagedProducts, pageable, allProducts.size());
     }
+
 
     @Override
     public Product updateSingleProduct(Long id, Product product) {
@@ -64,9 +80,9 @@ public class FakeStoreProductService implements ProductService {
      @Override
     public List<Product> getProductsInSpecificCategory(String categoryName) {
         List<Product> products = new ArrayList<>();
-        FakeStoreProductDTO[] fakeStoreProductsDTO = restTemplate.getForObject("https://fakestoreapi.com/products/category/" + categoryName, FakeStoreProductDTO[].class);
+         FakeStoreProductDto[] fakeStoreProductsDTO = restTemplate.getForObject("https://fakestoreapi.com/products/category/" + categoryName, FakeStoreProductDto[].class);
 
-        for (FakeStoreProductDTO fakeStoreProductDTO : fakeStoreProductsDTO) {
+        for (FakeStoreProductDto fakeStoreProductDTO : fakeStoreProductsDTO) {
             var product = Product.builder()
                     .id(fakeStoreProductDTO.getId())
                     .imageURL(fakeStoreProductDTO.getImage())
@@ -85,8 +101,8 @@ public class FakeStoreProductService implements ProductService {
     }
 
     @Override
-    public String deleteSingleProduct(Long id) {
-        return null;
+    public void deleteSingleProduct(Long id) {
+        return;
     }
 
     @Override
@@ -95,13 +111,8 @@ public class FakeStoreProductService implements ProductService {
     }
 
     @Override
-    public Product addProduct(Product product) {
-        return null;
-    }
-
-     @Override
     public Product createProduct(CreateProductRequestDTO createProductRequestDTO) {
-        var fakeStoreProductDTO = FakeStoreProductDTO.builder()
+        var fakeStoreProductDTO = FakeStoreProductDto.builder()
                 .image(createProductRequestDTO.getImage())
                 .title(createProductRequestDTO.getTitle())
                 .price(createProductRequestDTO.getPrice())
@@ -109,8 +120,13 @@ public class FakeStoreProductService implements ProductService {
                 .category(createProductRequestDTO.getCategory())
                 .build();
 
-        ResponseEntity<FakeStoreProductDTO> responseEntity = restTemplate.postForEntity("https://fakestoreapi.com/products", fakeStoreProductDTO, FakeStoreProductDTO.class);
+        ResponseEntity<FakeStoreProductDto> responseEntity = restTemplate.postForEntity("https://fakestoreapi.com/products", fakeStoreProductDTO, FakeStoreProductDto.class);
 
         return responseEntity.getBody().toProduct();
+    }
+
+    @Override
+    public Page<Product> getPaginatedProduct(Integer pageNo, Integer pageSize) {
+        return null;
     }
 }

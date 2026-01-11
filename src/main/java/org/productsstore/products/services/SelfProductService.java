@@ -1,17 +1,18 @@
 package org.productsstore.products.services;
 
+import jakarta.persistence.EntityNotFoundException;
+import org.productsstore.products.Dtos.CreateProductRequestDTO;
 import org.productsstore.products.Exceptions.ProductNotFoundException;
 import org.productsstore.products.models.Category;
 import org.productsstore.products.models.Product;
 import org.productsstore.products.repositories.CategoryRepository;
 import org.productsstore.products.repositories.ProductRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import javax.swing.text.html.Option;
-import java.awt.print.Pageable;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,6 +34,11 @@ public class SelfProductService implements ProductService {
             throw new NullPointerException("Product with id: " + id + " not found");
         }
         return product.get();
+    }
+
+    @Override
+    public List<Product> getProductsInSpecificCategory(String categoryName) {
+        return productRepository.findAllByCategory_Name(categoryName);
     }
 
     @Override
@@ -58,15 +64,14 @@ public class SelfProductService implements ProductService {
     }
 
     @Override
-    public String deleteSingleProduct(Long id) {
+    public void deleteSingleProduct(Long id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Product with id " + id + " not found"));
 
-        Optional<Product> product = productRepository.findById(id);
-        if (product.isEmpty()) {
-            throw new NullPointerException("Product with id: " + id + " not found");
-        }
-        productRepository.deleteById(id);
-        return "Product with id: " + id + " deleted";
+        productRepository.delete(product);
     }
+
 
     @Override
     public Product replaceProduct(Long id, Product product) throws ProductNotFoundException {
@@ -93,15 +98,36 @@ public class SelfProductService implements ProductService {
     }
 
     @Override
-    public Product addProduct(Product product) {
-
-        Category category = product.getCategory();
-
-        if(category.getId() == null) {
-            category = categoryRepository.save(category);
-            product.setCategory(category);
+    public Product createProduct(CreateProductRequestDTO createProductRequestDTO) {
+        // Check if the Product exists
+        var product = productRepository.findByTitle(createProductRequestDTO.getTitle());
+        if (product == null) {
+            product = createProductRequestDTO.toProduct();
+            product.setCreatedAt(new Date());
+        } else {
+            product.setUpdatedAt(new Date());
         }
-        Product newProduct = productRepository.save(product);
-        return newProduct;
+
+        // Check if the category exists in database if exists, don't create a new entry.
+        var category = categoryRepository.findByName(createProductRequestDTO.getCategory());
+        if (category == null) {
+            category = Category.builder()
+                    .name(createProductRequestDTO.getCategory())
+                    .createdAt(new Date())
+                    .name(createProductRequestDTO.getCategory())
+                    .build();
+        } else {
+            category.setUpdatedAt(new Date());
+        }
+        product.setCategory(category);
+
+        return productRepository.save(product);
     }
+
+    @Override
+    public Page<Product> getPaginatedProduct(Integer pageNo, Integer pageSize) {
+        Pageable pageable = PageRequest.of(pageNo - 1, pageSize);
+        return productRepository.findAll(pageable);
+    }
+
 }
