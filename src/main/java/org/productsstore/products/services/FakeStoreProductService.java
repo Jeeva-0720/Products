@@ -61,6 +61,29 @@ public class FakeStoreProductService implements ProductService {
         return fakeStoreProductDto.convertFakeStoreProductToProduct(fakeStoreProductDto);
     }
 
+     @Override
+    public List<Product> getProductsInSpecificCategory(String categoryName) {
+        List<Product> products = new ArrayList<>();
+        FakeStoreProductDTO[] fakeStoreProductsDTO = restTemplate.getForObject("https://fakestoreapi.com/products/category/" + categoryName, FakeStoreProductDTO[].class);
+
+        for (FakeStoreProductDTO fakeStoreProductDTO : fakeStoreProductsDTO) {
+            var product = Product.builder()
+                    .id(fakeStoreProductDTO.getId())
+                    .imageURL(fakeStoreProductDTO.getImage())
+                    .title(fakeStoreProductDTO.getTitle())
+                    .price(fakeStoreProductDTO.getPrice())
+                    .description(fakeStoreProductDTO.getDescription())
+                    .category(Category.builder()
+                            .name(fakeStoreProductDTO.getCategory())
+                            .build())
+                    .build();
+
+            products.add(product);
+        }
+
+        return products;
+    }
+
     @Override
     public String deleteSingleProduct(Long id) {
         return null;
@@ -74,5 +97,20 @@ public class FakeStoreProductService implements ProductService {
     @Override
     public Product addProduct(Product product) {
         return null;
+    }
+
+     @Override
+    public Product createProduct(CreateProductRequestDTO createProductRequestDTO) {
+        var fakeStoreProductDTO = FakeStoreProductDTO.builder()
+                .image(createProductRequestDTO.getImage())
+                .title(createProductRequestDTO.getTitle())
+                .price(createProductRequestDTO.getPrice())
+                .description(createProductRequestDTO.getDescription())
+                .category(createProductRequestDTO.getCategory())
+                .build();
+
+        ResponseEntity<FakeStoreProductDTO> responseEntity = restTemplate.postForEntity("https://fakestoreapi.com/products", fakeStoreProductDTO, FakeStoreProductDTO.class);
+
+        return responseEntity.getBody().toProduct();
     }
 }
