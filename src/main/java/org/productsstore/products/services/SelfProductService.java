@@ -2,6 +2,7 @@ package org.productsstore.products.services;
 
 import jakarta.persistence.EntityNotFoundException;
 import org.productsstore.products.Dtos.CreateProductRequestDTO;
+import org.productsstore.products.Dtos.UserDto;
 import org.productsstore.products.Exceptions.ProductNotFoundException;
 import org.productsstore.products.models.Category;
 import org.productsstore.products.models.Product;
@@ -11,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.Date;
 import java.util.List;
@@ -21,10 +23,37 @@ public class SelfProductService implements ProductService {
 
     ProductRepository productRepository;
     CategoryRepository categoryRepository;
+    RestTemplate restTemplate;
 
-    public SelfProductService(ProductRepository productRepository, CategoryRepository categoryRepository) {
+    public SelfProductService(ProductRepository productRepository, CategoryRepository categoryRepository, RestTemplate restTemplate) {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
+        this.restTemplate = new RestTemplate();
+    }
+
+    @Override
+    public Product getDetailsBasedOnUserScope(Long productId, Long userId) {
+        Optional<Product> optionalProduct = productRepository.findById(productId);
+
+        if(optionalProduct.isEmpty()) {
+            System.out.println("NO PRODUCT FOUND");
+            return null;
+        }
+
+        //check for product scope - public or private and
+        //accordingly add if else conditions
+
+        //Call to UserService to get User Detail
+        //if user is not null, we will return product , else return null;
+        UserDto userDto = restTemplate.getForObject("http://userservice/users/{userId}", UserDto.class,userId);
+
+        if(userDto == null) {
+            System.out.println("NO USER DETAIL FOUND");
+            return null;
+        }
+
+        System.out.println(userDto.getEmail());
+        return optionalProduct.get();
     }
 
     @Override

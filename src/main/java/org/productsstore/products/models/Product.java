@@ -12,7 +12,7 @@ import java.util.Date;
 @Getter
 @Setter
 @Entity
-public class Product extends BaseModel {
+public class Product extends ProductBaseModel {
     private String title;
     private String description;
     private Double price;

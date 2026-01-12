@@ -3,14 +3,14 @@ package org.productsstore.products.Dtos;
 
 import lombok.Builder;
 import lombok.Data;
-import org.productsstore.products.models.BaseModel;
+import org.productsstore.products.models.ProductBaseModel;
 import org.productsstore.products.models.Category;
 
 import java.io.Serializable;
 import java.util.Date;
 
 @Data
-public class ProductResponseDTO extends BaseModel implements Serializable {
+public class ProductResponseDTO extends ProductBaseModel implements Serializable {
     private String title;
     private String description;
     private double price;

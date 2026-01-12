@@ -2,12 +2,12 @@ package org.productsstore.products.Dtos;
 
 import lombok.Builder;
 import lombok.Data;
-import org.productsstore.products.models.BaseModel;
+import org.productsstore.products.models.ProductBaseModel;
 
 import java.util.Date;
 
 @Data
-public class CategoryResponseDTO extends BaseModel {
+public class CategoryResponseDTO extends ProductBaseModel {
     private String categoryName;
 
     @Builder

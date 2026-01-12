@@ -1,12 +1,15 @@
 package org.productsstore.products.controllers;
 
 
+import jakarta.annotation.Nullable;
 import org.productsstore.products.Dtos.CreateProductRequestDTO;
 import org.productsstore.products.Dtos.ProductResponseDTO;
+import org.productsstore.products.Dtos.UserDto;
+import org.productsstore.products.Exceptions.InvalidTokenException;
 import org.productsstore.products.Exceptions.ProductNotFoundException;
+import org.productsstore.products.commons.AuthenticationCommons;
 import org.productsstore.products.models.Product;
 import org.productsstore.products.services.ProductService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -21,15 +24,25 @@ import java.util.List;
 public class ProductController {
 
     ProductService productService;
+    AuthenticationCommons authenticationCommons;
 
-    public ProductController( @Qualifier("fakeStoreProductService") ProductService productService) {
+    public ProductController( @Qualifier("selfProductService") ProductService productService, AuthenticationCommons authenticationCommons) {
         this.productService = productService;
+        this.authenticationCommons = authenticationCommons;
+    }
+
+    @GetMapping("/products/{productId}/{userId}")
+    public Product getProductDetailsBasedOnUserScope(@PathVariable Long productId, @PathVariable Long userId) {
+        return productService.getDetailsBasedOnUserScope(productId,userId);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Product> getProductById(@PathVariable ("id") Long id) {
-        ResponseEntity<Product> response = new ResponseEntity<>(productService.getSingleProduct(id), HttpStatus.OK);
-        return response;
+    public ResponseEntity<Product> getProductById(@PathVariable ("id") Long id, @Nullable @RequestHeader("Authorization") String token) throws ProductNotFoundException, InvalidTokenException {
+        UserDto userDto = authenticationCommons.validateToken(token);
+        if(userDto == null) {
+            throw new InvalidTokenException("Provided Token is not valid, please try again");
+        }
+        return new ResponseEntity<>(productService.getSingleProduct(id), HttpStatus.OK);
     }
 
     @GetMapping

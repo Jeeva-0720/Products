@@ -129,4 +129,9 @@ public class FakeStoreProductService implements ProductService {
     public Page<Product> getPaginatedProduct(Integer pageNo, Integer pageSize) {
         return null;
     }
+
+    @Override
+    public Product getDetailsBasedOnUserScope(Long productId, Long userId) {
+        return null;
+    }
 }

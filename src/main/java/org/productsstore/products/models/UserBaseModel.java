@@ -4,18 +4,22 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
-import lombok.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Date;
 
+@Setter
+@Getter
 @MappedSuperclass
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
-public class BaseModel {
+public class UserBaseModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private Date createdAt;
-    private Date updatedAt;
+
+    private Date lastUpdatedAt;
+
+    private State state;
 }

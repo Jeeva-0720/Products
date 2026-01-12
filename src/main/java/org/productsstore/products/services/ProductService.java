@@ -16,4 +16,5 @@ public interface ProductService {
     public Product replaceProduct(Long id, Product product)  throws ProductNotFoundException;
     Product createProduct(CreateProductRequestDTO createProductRequestDTO);
     Page<Product> getPaginatedProduct(Integer pageNo, Integer pageSize);
+    Product getDetailsBasedOnUserScope(Long productId,Long userId);
 }
