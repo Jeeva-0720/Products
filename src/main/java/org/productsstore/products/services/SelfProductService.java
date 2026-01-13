@@ -77,11 +77,14 @@ public class SelfProductService implements ProductService {
     }
 
     @Override
+    // Updates specific fields of an existing product.
+    // Only non-null fields from the input Product object are applied (partial update behavior).
     public Product updateSingleProduct(Long id, Product product) throws ProductNotFoundException {
         Optional<Product> oldProduct = productRepository.getProductById(id);
         if (oldProduct.isEmpty()) {
             throw new ProductNotFoundException("Product with id: " + id + " not found");
         }
+        // Retrieve the existing product entity for update
         Product updatedProduct = oldProduct.get();
         if(product.getTitle()!=null) {
             updatedProduct.setTitle(product.getTitle());
@@ -89,20 +92,26 @@ public class SelfProductService implements ProductService {
         if(product.getPrice()!=null) {
             updatedProduct.setPrice(product.getPrice());
         }
+        // Persist the updated product entity back to the database
         return productRepository.save(updatedProduct);
     }
 
     @Override
+    // Deletes a product permanently from the database using its unique identifier.
     public void deleteSingleProduct(Long id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(
                         "Product with id " + id + " not found"));
 
+        // Remove the product entity from the repository
         productRepository.delete(product);
     }
 
 
     @Override
+    // Replaces an existing product identified by its ID.
+    // Although named "replace", this method performs a full update by selectively
+    // overwriting fields only when non-null values are provided.
     public Product replaceProduct(Long id, Product product) throws ProductNotFoundException {
         Optional<Product> oldProduct = productRepository.getProductById(id);
         if (oldProduct.isEmpty()) {
@@ -122,13 +131,15 @@ public class SelfProductService implements ProductService {
         if(product.getDescription()!=null) {
             updatedProduct.setDescription(product.getDescription());
         }
-
+        // Persist the updated product entity to the database
         return productRepository.save(updatedProduct);
     }
 
     @Override
+    // Creates a new product or updates an existing one based on the product title.
+    // If a product with the same title already exists, it updates the timestamps
+    // and reuses the existing entity instead of creating a duplicate.
     public Product createProduct(CreateProductRequestDTO createProductRequestDTO) {
-        // Check if the Product exists
         var product = productRepository.findByTitle(createProductRequestDTO.getTitle());
         if (product == null) {
             product = createProductRequestDTO.toProduct();
@@ -148,6 +159,7 @@ public class SelfProductService implements ProductService {
         } else {
             category.setUpdatedAt(new Date());
         }
+        // Associate the resolved category with the product
         product.setCategory(category);
 
         return productRepository.save(product);
